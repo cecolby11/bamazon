@@ -12,26 +12,87 @@ var connection = require('./databaseConnection.js').connection;
 // =================
 
 var workplace = {
-  'stockArray': []
-}
+  'stockArray': [], 
 
-// List a set of menu options:
-// View Products for Sale
-// View Low Inventory
-// Add to Inventory
-// Add New Product
-
+  // List a set of menu options:
+  selectAction: function() {
+    inquirer.prompt({
+      type: 'list',
+      message: 'What would you like to do?',
+      name: 'selectedAction',
+      choices: ['View Products For Sale', 'View Low Inventory', 'Add to Inventory', 'Add New Product']
+    }).then(function(userData){
+      switch(userData.selectedAction) {
+        case 'View Products For Sale': 
+          database.listAllProducts();
+          break;
+        case 'View Low Inventory': 
+          database.listLowInventory();
+          break;
+        case 'Add to Inventory':
+          workplace.addWhichInventory();
+          break;
+        case 'Add New Product':
+          workplace.addWhichProduct();
+          break;
+        default:
+          database.listAllProducts();
+      }
+    })
+  }, 
+  
   // If a manager selects Add to Inventory, your app should display a prompt that will let the manager "add more" of any item currently in the store.
+  addWhichInventory: function() {
+    inquirer.prompt([
+    {
+      type: 'input',
+      message: 'Enter the item id',
+      name: 'itemId'
+    },
+    {
+      type: 'input',
+      message: 'Enter quantity to add',
+      name: 'addQuantity'
+    }]).then(function(userData){
+      database.addStockToInventory(userData.itemId, userData.addQuantity);
+    })
+  },
 
-    // If a manager selects Add New Product, it should allow the manager to add a completely new product to the store.
-
+  // If a manager selects Add New Product, it should allow the manager to add a completely new product to the store.
+  addWhichProduct: function() {
+    inquirer.prompt([
+    {
+      type: 'input',
+      message: 'Enter the item name',
+      name: 'product_name'
+    },
+    {
+      type: 'input',
+      message: 'Enter the department',
+      name: 'department_name'
+    },
+    {
+      type: 'input',
+      message: 'Enter the unit price',
+      name: 'price'
+    },
+    {
+      type: 'input',
+      message: 'Enter the stock quantity to add', 
+      name: 'stock_quantity'
+    }
+    ]).then(function(userData){
+      database.addItemToInventory(userData);
+    })
+  }
+};
 
 // =========
 // DATABASE
 // =========
 
 var database = {
-  // If a manager selects View Products for Sale, the app should list every available item: the item IDs, names, prices, and quantities.
+  // list every available item: the item IDs, names, prices, and quantities.
   listAllProducts: function() {
     connection.query('SELECT * FROM products', function(error, result) {
       if(error) {
@@ -48,7 +109,7 @@ var database = {
     });
   },
 
-  // If a manager selects View Low Inventory, then it should list all items with a inventory count lower than five.
+  // list all items with a inventory count lower than five.
   listLowInventory: function() {
     connection.query('SELECT * FROM products WHERE stock_quantity < ?', 5, function(error, result) {
       if(error) {
@@ -65,7 +126,7 @@ var database = {
     })
   },
 
-  // If a manager selects Add to Inventory, your app should display a prompt that will let the manager "add more" of any item currently in the store.
+  // increase inventory of any item currently in the store.
   addStockToInventory: function(itemId, addQuantity) {
     connection.query('UPDATE products SET stock_quantity = (stock_quantity + ?) WHERE item_id = ?', [addQuantity, itemId], function(error, result) {
       if(error){
@@ -85,7 +146,7 @@ var database = {
     })
   },
 
-  // If a manager selects Add New Product, it should allow the manager to add a completely new product to the store.
+  //add a completely new product to the store.
   addItemToInventory: function(product) {
     connection.query(
       `INSERT INTO products (
@@ -94,27 +155,25 @@ var database = {
         price,
         stock_quantity
       ) VALUES
-      (?, ?, ?, ?)
+      (?, ?, ?, ?);
       `, [product.product_name, product.department_name, product.price, product.stock_quantity], function(error, result) {
         if(error) {
           console.log(error);
         } else {
-          console.log(result);
+          // get id it was inserted to and add it to the object 
+          var insertId = result.insertId;
+          product.item_id = insertId;
+          console.log(color.bgGreen('\nProduct add successful!\n'));
+          console.log(('id\titem\t\tprice\tquantity'));
+          var newProduct = new Product(product);
+            newProduct.displayItemToManager();
         }
       });
   }
-
 };
 
 // ==========
 // INITIALIZE
 // ==========
 
-// database.addStockToInventory(3, 3);
-var p1 = {
-  product_name: 'Stuff222!',
-  department_name: 'Linguisticsy',
-  price: 40,
-  stock_quantity: 3
-}
-database.addItemToInventory(p1);
+workplace.selectAction();
