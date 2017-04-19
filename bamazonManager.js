@@ -21,6 +21,10 @@ var workplace = {
 // Add to Inventory
 // Add New Product
 
+  // If a manager selects Add to Inventory, your app should display a prompt that will let the manager "add more" of any item currently in the store.
+
+    // If a manager selects Add New Product, it should allow the manager to add a completely new product to the store.
+
 
 // =========
 // DATABASE
@@ -59,12 +63,32 @@ var database = {
         }
       }
     })
-  }
+  },
 
   // If a manager selects Add to Inventory, your app should display a prompt that will let the manager "add more" of any item currently in the store.
-
+  addStockToInventory: function(itemId, addQuantity) {
+    connection.query('UPDATE products SET stock_quantity = (stock_quantity + ?) WHERE item_id = ?', [addQuantity, itemId], function(error, result) {
+      if(error){
+        console.log(error);
+      } else {
+        connection.query('SELECT * FROM products WHERE item_id = ?', itemId, function(error, result) {
+          if (error) {
+            console.log(error);
+          } else {
+            console.log(color.bgGreen('\nInventory add successful!\n'));
+            console.log(('id\titem\t\tprice\tquantity'));
+            var updatedProduct = new Product(result[0]);
+            updatedProduct.displayItemToManager();
+          }
+        })
+      }
+    })
+  },
 
   // If a manager selects Add New Product, it should allow the manager to add a completely new product to the store.
+  addItemToInventory: function(product) {
+    
+  }
 
 };
 
@@ -72,4 +96,4 @@ var database = {
 // INITIALIZE
 // ==========
 
-database.listLowInventory();
+database.addStockToInventory(3, 3);
