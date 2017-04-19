@@ -55,10 +55,32 @@ var database = {
       } else {
         if (result[0].stock_quantity >= requestedQuantity) {
           console.log('we can do that!');
+          database.fulfillOrder(itemId, requestedQuantity);
         } else {
           console.log(color.bgRed('\nTransaction cannot be completed: Insufficient quantity available!\n'));
-          storefront.hasAnotherOrder();
+          storefront.checkIfAnotherOrder();
         }
+      }
+    })
+  }, 
+
+  fulfillOrder: function(itemId, purchaseQuantity) {
+    var unitPrice;
+    var transactionTotal;
+
+    connection.query('UPDATE products SET stock_quantity = (stock_quantity - ?) WHERE item_id = ?', [purchaseQuantity, itemId], function(error, result){
+      if(error) {
+        console.log(error);
+      } else {
+        connection.query('SELECT price FROM products WHERE item_id = ?', itemId, function(error, result) {
+          if(error) {
+            console.log(error);
+          } else {
+            unitPrice = result[0].price;
+            transactionTotal = unitPrice*purchaseQuantity;
+            console.log(color.green('\nTransaction Successful! Your total is: ' + transactionTotal + '\n'));
+          }
+        })
       }
     })
   }
@@ -88,7 +110,7 @@ var storefront = {
       })
   }, 
 
-  hasAnotherOrder: function() {
+  checkIfAnotherOrder: function() {
     inquirer.prompt({
       type: 'confirm', 
       message: 'Would you like to revisit the catalog and place a new order?',
