@@ -14,13 +14,24 @@ var Product = function(productObj) {
   this.quantity = productObj.stock_quantity
 };
 
-Product.prototype.displayItem = function() {
+Product.prototype.displayItemToCustomer = function() {
   console.log('\n' + 
-            color.green(this.id +
+            color.green(this.id) +
             '\t' + 
-            color.cyan(this.name)) + 
+            color.cyan(this.name) + 
             '\t' + 
             color.magenta(this.price));
+}
+
+Product.prototype.displayItemToManager = function() {
+  console.log('\n' + 
+            color.green(this.id)+
+            '\t' + 
+            color.cyan(this.name) + 
+            '\t' + 
+            color.magenta(this.price) + 
+            '\t' + 
+            color.yellow(this.quantity));
 }
 
 module.exports = {

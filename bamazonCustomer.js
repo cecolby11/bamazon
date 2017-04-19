@@ -3,26 +3,9 @@
 // =============
 
 var inquirer = require('inquirer');
-var mysql = require('mysql');
 var color = require('cli-color');
 var Product = require('./product.js').Product;
-
-// ===========
-// CONNECTION
-// ===========
-
-var connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root', 
-  password: '',
-  database: 'Bamazon'
-});
-
-connection.connect(function(error){
-  if(error){
-    console.log(error);
-  }
-});
+var connection = require('./databaseConnection.js').connection;
 
 // ==========
 // DATABASE
@@ -41,22 +24,27 @@ var database = {
         for(var i = 0; i < itemArray.length; i++) {
           var newProduct = new Product(itemArray[i]);
           storefront.stockArray.push(newProduct);
-          newProduct.displayItem();
+          newProduct.displayItemToCustomer();
         }
+        // callback 
         func();
       }
     })
   }, 
 
+  // check if there's enough stock of the product to meet request 
   checkStock: function(itemId, requestedQuantity) {
     connection.query('SELECT stock_quantity FROM products WHERE item_id = ?', itemId, function(error, result) {
+      // if so: fulfill the customer's order" 
+      // update the sql database to reflect the remaining quantity
+      // then show the customer the total cost of their purchase 
       if(error) {
         console.log(error);
       } else {
         if (result[0].stock_quantity >= requestedQuantity) {
-          console.log('we can do that!');
           database.fulfillOrder(itemId, requestedQuantity);
         } else {
+          // if not: log insufficient quantity to the user and prevent the order from going through 
           console.log(color.bgRed('\nTransaction cannot be completed: Insufficient quantity available!\n'));
           storefront.checkIfAnotherOrder();
         }
@@ -93,6 +81,9 @@ var database = {
 var storefront = {
   'stockArray': [],
 
+  // prompt user with 2 messages 
+  // 1. id of product to buy
+  // 2. how many units to buy 
   getOrder: function() {
     inquirer.prompt([
       {
@@ -135,15 +126,5 @@ database.listItems(storefront.getOrder);
 
 
 
-// prompt user with 2 messages 
-// 1. id of product to buy
-// 2. how many units to buy 
 
-// get user selection/order
-// check if there's enough stock of the product to meet request 
-
-// if not: log insufficient quantity to the user and prevent the order from going through 
-
-// if so: fulfill the customer's order" 
-  // update the sql database to reflect the remaining quantity
-  // then show the customer the total cost of their purchase 
+// TODO: validate/limit user input 
