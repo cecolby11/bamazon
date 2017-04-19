@@ -87,7 +87,21 @@ var database = {
 
   // If a manager selects Add New Product, it should allow the manager to add a completely new product to the store.
   addItemToInventory: function(product) {
-    
+    connection.query(
+      `INSERT INTO products (
+        product_name, 
+        department_name,
+        price,
+        stock_quantity
+      ) VALUES
+      (?, ?, ?, ?)
+      `, [product.product_name, product.department_name, product.price, product.stock_quantity], function(error, result) {
+        if(error) {
+          console.log(error);
+        } else {
+          console.log(result);
+        }
+      });
   }
 
 };
@@ -96,4 +110,11 @@ var database = {
 // INITIALIZE
 // ==========
 
-database.addStockToInventory(3, 3);
+// database.addStockToInventory(3, 3);
+var p1 = {
+  product_name: 'Stuff222!',
+  department_name: 'Linguisticsy',
+  price: 40,
+  stock_quantity: 3
+}
+database.addItemToInventory(p1);
