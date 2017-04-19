@@ -9,6 +9,7 @@
   "author": "Casey C",
   "license": "ISC",
   "dependencies": {
+    "cli-color": "^1.2.0",
     "inquirer": "^3.0.6",
     "mysql": "^2.13.0"
   }
