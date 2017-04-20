@@ -42,7 +42,7 @@ var database = {
         console.log(error);
       } else {
         if (result[0].stock_quantity >= requestedQuantity) {
-          database.fulfillOrder(itemId, requestedQuantity);
+          database.fulfillOrder(itemId, requestedQuantity, storefront.checkContinue);
         } else {
           // if not: log insufficient quantity to the user and prevent the order from going through 
           console.log(color.bgRed('\nTransaction cannot be completed: Insufficient quantity available!\n'));
@@ -52,7 +52,7 @@ var database = {
     })
   }, 
 
-  fulfillOrder: function(itemId, purchaseQuantity) {
+  fulfillOrder: function(itemId, purchaseQuantity, func) {
     var unitPrice;
     var transactionTotal;
 
@@ -67,6 +67,8 @@ var database = {
             unitPrice = result[0].price;
             transactionTotal = unitPrice*purchaseQuantity;
             console.log(color.green('\nTransaction Successful! Your total is: ' + transactionTotal + '\n'));
+
+            func(); //callback
           }
         })
       }
@@ -113,6 +115,20 @@ var storefront = {
         console.log(color.bgCyan('\nCome back soon!\n'));
       }
     })
+  },
+
+  checkContinue: function() {
+    inquirer.prompt({
+      type: 'confirm',
+      message: 'Would you like to make another transaction?',
+      name: 'continue'
+    }).then(function(userData){
+      if(userData.continue === true){
+        database.listItems(storefront.getOrder);
+      } else {
+        console.log(color.bgCyan('\nCome back soon!\n'));
+      }
+    })
   }
 
 };
@@ -127,4 +143,5 @@ database.listItems(storefront.getOrder);
 
 
 
-// TODO: validate/limit user input 
+// TODO: 
+// validate/limit user input 

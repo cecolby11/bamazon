@@ -18,16 +18,16 @@ var workplace = {
   selectAction: function() {
     inquirer.prompt({
       type: 'list',
-      message: 'What would you like to do?',
+      message: 'You are logged in to the Bamazon Workplace. What would you like to do?',
       name: 'selectedAction',
       choices: ['View Products For Sale', 'View Low Inventory', 'Add to Inventory', 'Add New Product']
     }).then(function(userData){
       switch(userData.selectedAction) {
         case 'View Products For Sale': 
-          database.listAllProducts();
+          database.listAllProducts(workplace.checkContinue);
           break;
         case 'View Low Inventory': 
-          database.listLowInventory();
+          database.listLowInventory(workplace.checkContinue);
           break;
         case 'Add to Inventory':
           workplace.addWhichInventory();
@@ -54,7 +54,7 @@ var workplace = {
       message: 'Enter quantity to add',
       name: 'addQuantity'
     }]).then(function(userData){
-      database.addStockToInventory(userData.itemId, userData.addQuantity);
+      database.addStockToInventory(userData.itemId, userData.addQuantity, workplace.checkContinue);
     })
   },
 
@@ -82,7 +82,21 @@ var workplace = {
       name: 'stock_quantity'
     }
     ]).then(function(userData){
-      database.addItemToInventory(userData);
+      database.addItemToInventory(userData, workplace.checkContinue);
+    })
+  }, 
+
+  checkContinue: function() {
+    inquirer.prompt({
+      type: 'confirm',
+      message: 'Would you like to make another transaction?',
+      name: 'continue'
+    }).then(function(userData){
+      if(userData.continue === true){
+        workplace.selectAction();
+      } else {
+        console.log(color.bgCyan('\nYou have been successfully logged out of the Bamazon workplace.\n'));
+      }
     })
   }
 };
@@ -93,7 +107,7 @@ var workplace = {
 
 var database = {
   // list every available item: the item IDs, names, prices, and quantities.
-  listAllProducts: function() {
+  listAllProducts: function(func) {
     connection.query('SELECT * FROM products', function(error, result) {
       if(error) {
         console.log(error);
@@ -105,12 +119,14 @@ var database = {
           workplace.stockArray.push(newProduct);
           newProduct.displayItemToManager();
         }
+
+        func(); // callback
       }
     });
   },
 
   // list all items with a inventory count lower than five.
-  listLowInventory: function() {
+  listLowInventory: function(func) {
     connection.query('SELECT * FROM products WHERE stock_quantity < ?', 5, function(error, result) {
       if(error) {
         console.log(error);
@@ -122,12 +138,14 @@ var database = {
           workplace.stockArray.push(newProduct);
           newProduct.displayItemToManager();
         }
+
+        func(); // callback
       }
-    })
+    });
   },
 
   // increase inventory of any item currently in the store.
-  addStockToInventory: function(itemId, addQuantity) {
+  addStockToInventory: function(itemId, addQuantity, func) {
     connection.query('UPDATE products SET stock_quantity = (stock_quantity + ?) WHERE item_id = ?', [addQuantity, itemId], function(error, result) {
       if(error){
         console.log(error);
@@ -140,14 +158,16 @@ var database = {
             console.log(('id\titem\t\tprice\tquantity'));
             var updatedProduct = new Product(result[0]);
             updatedProduct.displayItemToManager();
+
+            func(); //callback
           }
-        })
+        });
       }
-    })
+    });
   },
 
   //add a completely new product to the store.
-  addItemToInventory: function(product) {
+  addItemToInventory: function(product, func) {
     connection.query(
       `INSERT INTO products (
         product_name, 
@@ -167,6 +187,8 @@ var database = {
           console.log(('id\titem\t\tprice\tquantity'));
           var newProduct = new Product(product);
             newProduct.displayItemToManager();
+
+          func(); // callback
         }
       });
   }
