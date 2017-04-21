@@ -66,29 +66,42 @@ var database = {
   }, 
 
   calculateTotal: function(itemId, purchaseQuantity) {
-    // get product price
-    connection.query('SELECT price FROM products WHERE item_id = ?', itemId, function(error, result) {
+    // get product from id- will need price and dept to fulfill order and update sales logs 
+    connection.query('SELECT * FROM products WHERE item_id = ?', itemId, function(error, result) {
         if(error) {
           console.log(error);
         } else {
-          // grab price from result
-          unitPrice = result[0].price;
+          // create new Product 
+          var soldProduct = new Product(result[0]);
+          // grab price from Product
+          unitPrice = soldProduct.price;
           // calculate total
           transactionTotal = unitPrice*purchaseQuantity;
           // log in database
-          database.logRevenue(itemId, transactionTotal);
+          database.updateProductRevenue(itemId, soldProduct, transactionTotal);
         }
       });
   },
 
-  logRevenue: function(itemId, totalRevenue) {
-    //update total sales in the database 
+  updateProductRevenue: function(itemId, soldProduct, transactionTotal) {
+    //update total sales in the products table
     connection.query('UPDATE products SET product_sales = (product_sales + ?) WHERE item_id = ?', [transactionTotal, itemId], function(error, result) {
       if (error) {
         console.log(error);
       } else {
         // log total to customer
         console.log(color.green('\nTransaction Successful! Your total is: ' + transactionTotal + '\n'));
+        database.updateDepartmentSales(soldProduct, transactionTotal);
+      }
+    });
+  }, 
+
+  updateDepartmentSales: function(soldProduct, totalRevenue) {
+    // update total sales in the depts table
+    connection.query('UPDATE departments SET total_sales = (total_sales + ?) WHERE department_name = ?',[totalRevenue, soldProduct.dept], function(error, result){
+      if(error){
+        console.log(error);
+      } else {
         storefront.checkContinue();
       }
     });

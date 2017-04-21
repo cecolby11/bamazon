@@ -19,3 +19,19 @@ INSERT INTO products (
 ("ice cubes", "frozen", 14.99, 100),
 ("cactus pen", "stationary", 5.99, 40)
 ;
+
+INSERT INTO departments (
+    department_name
+) VALUES
+("home improvement"),
+("gardening"),
+("pet care"),
+("grocery"),
+("fashion"),
+("clearance"),
+("automotive"),
+("tech and robots"),
+("travel"),
+("frozen"),
+("stationary")
+;
