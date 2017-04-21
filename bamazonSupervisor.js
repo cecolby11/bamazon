@@ -27,11 +27,28 @@ var office = {
           database.salesByDepartment();
           break;
         case 'Create New Department': 
-          database.createNewDepartment();
+          office.addWhichDepartment();
           break;
         default:
           database.salesByDepartment();
       }
+    })
+  }, 
+
+  addWhichDepartment: function() {
+    inquirer.prompt([
+    {
+      type: 'input',
+      message: 'Enter the department name',
+      name: 'department_name'
+    },
+    {
+      type: 'input',
+      message: 'Enter the department overhead costs',
+      name: 'overhead_costs'
+    }
+    ]).then(function(userData){
+      database.createNewDepartment(userData);
     })
   }
 };
@@ -50,8 +67,24 @@ var database = {
     });
   }, 
 
-  createNewDepartment: function() {
-
+  createNewDepartment: function(department) {
+    connection.query(
+      `INSERT INTO departments (
+        department_name, 
+        overhead_costs
+      ) VALUES
+        (?,?);
+      `, [department.department_name, department.overhead_costs], function(error, result){
+        if(error) {
+          console.log(error);
+        } else {
+          // get id it was inserted to and add it to the object
+          var insertId = result.insertId;
+          department.department_id = insertId;
+          console.log(color.bgGreen('\nDepartment add: successful!\n'));
+          console.table([department]);
+        }
+      });
   }
 }
 
