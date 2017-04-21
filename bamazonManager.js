@@ -97,7 +97,7 @@ var workplace = {
       } else {
         console.log(color.bgCyan('\nYou have been successfully logged out of the Bamazon workplace.\n'));
       }
-    })
+    });
   }
 };
 

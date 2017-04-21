@@ -50,6 +50,20 @@ var office = {
     ]).then(function(userData){
       database.createNewDepartment(userData);
     })
+  }, 
+
+  checkContinue: function() {
+    inquirer.prompt({
+      type: 'confirm',
+      message: 'Would you like to do anything else?',
+      name: 'continue'
+    }).then(function(userData){
+      if(userData.continue === true){
+        office.selectAction();
+      } else {
+        console.log(color.bgYellow('\nExit Manager Functions.\n'));
+      }
+    });
   }
 };
 
@@ -82,7 +96,7 @@ var database = {
           var insertId = result.insertId;
           department.department_id = insertId;
           console.log(color.bgGreen('\nDepartment add: successful!\n'));
-          console.table([department]);
+          displayTable.newDepartment(department);
         }
       });
   }
@@ -91,6 +105,12 @@ var database = {
 var displayTable = {
   departmentSales: function(deptsArr) {
     console.table(deptsArr);
+    office.checkContinue();
+  },
+
+  newDepartment: function(department) {
+    console.table[department];
+    office.checkContinue();
   }
 }
 
