@@ -21,17 +21,18 @@ INSERT INTO products (
 ;
 
 INSERT INTO departments (
-    department_name
+    department_name, 
+    overhead_costs
 ) VALUES
-("home improvement"),
-("gardening"),
-("pet care"),
-("grocery"),
-("fashion"),
-("clearance"),
-("automotive"),
-("tech and robots"),
-("travel"),
-("frozen"),
-("stationary")
+("home improvement", 100.00),
+("gardening", 50.00),
+("pet care", 30.00),
+("grocery", 300.00),
+("fashion", 120.00),
+("clearance", 20.00),
+("automotive", 80.00),
+("tech and robots", 200.00),
+("travel", 70.00),
+("frozen", 90.00),
+("stationary", 16.00)
 ;

@@ -177,3 +177,4 @@ database.listItems(storefront.getOrder);
 
 // TODO: 
 // validate/limit user input 
+// if manager adds item, check if that dept is in departments table and if not, add it
