@@ -23,13 +23,15 @@ var database = {
         console.log(('id\titem\t\tprice'));
         for(var i = 0; i < itemArray.length; i++) {
           var newProduct = new Product(itemArray[i]);
+          var id = newProduct.id
           storefront.stockArray.push(newProduct);
+          storefront.availableIds.push(id);
           newProduct.displayItemToCustomer();
         }
         // callback, do something after listing which might change
         func();
       }
-    })
+    });
   }, 
 
   // check if there's enough stock of the product to meet request 
@@ -114,6 +116,7 @@ var database = {
 // =================
 var storefront = {
   'stockArray': [],
+  'availableIds': [],
 
   // prompt user with 2 messages 
   // 1. id of product to buy
@@ -123,12 +126,28 @@ var storefront = {
       {
         type: 'input',
         message: 'Please enter the id of the product you would like to purchase:',
-        name: 'productId'
+        name: 'productId',
+        validate: function(value) {
+        if (value.length && storefront.availableIds.indexOf(parseInt(value)) > -1) {
+          return true;
+        } else {
+          console.log(color.red('\nPlease enter the id of an available product'));
+          return;
+        }
+      }
       },
       {
         type: 'input',
         message: 'Quantity to purchase:',
-        name: 'purchaseQuantity'
+        name: 'purchaseQuantity',
+        validate: function(value) {
+          if (value.length && !isNaN(parseInt(value)) && parseInt(value) > 0) {
+            return true;
+          } else {
+            console.log(color.red('\nQuantity must be a number greater than 0'));
+            return;
+          }
+        }
       }
       ]).then(function(userData){
         database.checkStock(userData.productId, userData.purchaseQuantity);
