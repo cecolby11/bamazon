@@ -26,7 +26,7 @@ var database = {
           storefront.stockArray.push(newProduct);
           newProduct.displayItemToCustomer();
         }
-        // callback 
+        // callback, do something after listing which might change
         func();
       }
     })
@@ -42,7 +42,7 @@ var database = {
         console.log(error);
       } else {
         if (result[0].stock_quantity >= requestedQuantity) {
-          database.fulfillOrder(itemId, requestedQuantity, storefront.checkContinue);
+          database.fulfillOrder(itemId, requestedQuantity);
         } else {
           // if not: log insufficient quantity to the user and prevent the order from going through 
           console.log(color.bgRed('\nTransaction cannot be completed: Insufficient quantity available!\n'));
@@ -52,7 +52,7 @@ var database = {
     })
   }, 
 
-  fulfillOrder: function(itemId, purchaseQuantity, func) {
+  fulfillOrder: function(itemId, purchaseQuantity) {
     var unitPrice;
     var transactionTotal;
 
@@ -60,19 +60,38 @@ var database = {
       if(error) {
         console.log(error);
       } else {
-        connection.query('SELECT price FROM products WHERE item_id = ?', itemId, function(error, result) {
-          if(error) {
-            console.log(error);
-          } else {
-            unitPrice = result[0].price;
-            transactionTotal = unitPrice*purchaseQuantity;
-            console.log(color.green('\nTransaction Successful! Your total is: ' + transactionTotal + '\n'));
-
-            func(); //callback
-          }
-        })
+        database.calculateTotal(itemId, purchaseQuantity);
       }
     })
+  }, 
+
+  calculateTotal: function(itemId, purchaseQuantity) {
+    // get product price
+    connection.query('SELECT price FROM products WHERE item_id = ?', itemId, function(error, result) {
+        if(error) {
+          console.log(error);
+        } else {
+          // grab price from result
+          unitPrice = result[0].price;
+          // calculate total
+          transactionTotal = unitPrice*purchaseQuantity;
+          // log in database
+          database.logRevenue(itemId, transactionTotal);
+        }
+      });
+  },
+
+  logRevenue: function(itemId, totalRevenue) {
+    //update total sales in the database 
+    connection.query('UPDATE products SET product_sales = (product_sales + ?) WHERE item_id = ?', [transactionTotal, itemId], function(error, result) {
+      if (error) {
+        console.log(error);
+      } else {
+        // log total to customer
+        console.log(color.green('\nTransaction Successful! Your total is: ' + transactionTotal + '\n'));
+        storefront.checkContinue();
+      }
+    });
   }
 
 };
