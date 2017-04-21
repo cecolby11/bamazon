@@ -128,13 +128,13 @@ var storefront = {
         message: 'Please enter the id of the product you would like to purchase:',
         name: 'productId',
         validate: function(value) {
-        if (value.length && storefront.availableIds.indexOf(parseInt(value)) > -1) {
-          return true;
-        } else {
-          console.log(color.red('\nPlease enter the id of an available product'));
-          return;
+          if (value.length && storefront.availableIds.indexOf(parseInt(value)) > -1) {
+            return true;
+          } else {
+            console.log(color.red('\nPlease enter the id of an available product'));
+            return;
+          }
         }
-      }
       },
       {
         type: 'input',
@@ -190,10 +190,3 @@ var storefront = {
 // ==========
 
 database.listItems(storefront.getOrder);
-
-
-
-
-// TODO: 
-// validate/limit user input 
-// if manager adds item, check if that dept is in departments table and if not, add it

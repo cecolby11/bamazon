@@ -13,6 +13,7 @@ var connection = require('./databaseConnection.js').connection;
 
 var workplace = {
   'stockArray': [], 
+  'availableIds': [],
 
   // List a set of menu options:
   selectAction: function() {
@@ -30,7 +31,8 @@ var workplace = {
           database.listLowInventory(workplace.checkContinue);
           break;
         case 'Add to Inventory':
-          workplace.addWhichInventory();
+          database.listAllProducts(workplace.addWhichInventory);
+          // workplace.addWhichInventory();
           break;
         case 'Add New Product':
           workplace.addWhichProduct();
@@ -47,12 +49,28 @@ var workplace = {
     {
       type: 'input',
       message: 'Enter the item id',
-      name: 'itemId'
+      name: 'itemId',
+      validate: function(value) {
+        if (value.length && workplace.availableIds.indexOf(parseInt(value)) > -1) {
+          return true;
+        } else {
+          console.log(color.red('\nPlease enter the id of an available product'));
+          return;
+        }
+      }
     },
     {
       type: 'input',
       message: 'Enter quantity to add',
-      name: 'addQuantity'
+      name: 'addQuantity',
+      validate: function(value) {
+        if (value.length && !isNaN(parseInt(value)) && parseInt(value) > 0) {
+          return true;
+        } else {
+          console.log(color.red('\nQuantity must be a number greater than 0'));
+          return;
+        }
+      }
     }]).then(function(userData){
       database.addStockToInventory(userData.itemId, userData.addQuantity, workplace.checkContinue);
     })
@@ -116,6 +134,8 @@ var database = {
         console.log(('id\titem\t\tprice\tquantity'));
         for(var i = 0; i < result.length; i++) {
           var newProduct = new Product(result[i]);
+          var id = newProduct.id;
+          workplace.availableIds.push(id);
           workplace.stockArray.push(newProduct);
           newProduct.displayItemToManager();
         }
